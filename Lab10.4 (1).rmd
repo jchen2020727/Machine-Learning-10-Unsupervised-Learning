@@ -1,0 +1,112 @@
+---
+title: '10.4'
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Lab 10.4 PCA
+
+### Team 18
+
+In this lab, we will perform PCA on the USArrests data set, which is part of the base R package.
+```{r}
+rm(list=ls())
+
+states<-row.names(USArrests)
+states
+```
+
+The columns of the data set contain the four variables.
+
+```{r}
+names(USArrests)
+```
+
+When examining the data, we can see that the variables have vastly different means.There are on average three times as many rapes as murders, and more than eight times as many assaults as rapes. 
+
+The apply() function allows us to apply a function to each row or column of a dataset. When the second input is 1, it applies the function to the rows, and when it is 2, it applies it to the columns like in this example.
+
+```{r}
+apply(USArrests, 2, mean)
+
+```
+
+We can also use the apply() function to look at the variances of the variables. The variances are vastly different, which means that if we do not scale the variables before performing PCA, then most of the principle components we observed would be driven by the Assault variable since it has the largest mean and variance.
+```{r}
+apply(USArrests, 2, var)
+```
+
+We now perform principle components analysis using the prcomp() function, which automatically centers the variables to have mean zero. By specifying scale=True, we scale the variables to have a standard deviation of 1.
+```{r}
+pr.out=prcomp(USArrests, scale=TRUE)
+```
+
+```{r}
+names(pr.out)
+```
+
+The center and scale components of the prcomp() output refer to the means and standard deviations of the variables that were used for scaling prior to implementing PCA.
+```{r}
+pr.out$center
+pr.out$scale
+```
+
+The rotation matrix displays the principal component loadings. Each column contains the corresponding principal component loading vector.
+```{r}
+pr.out$rotation
+```
+
+We see that there are 4 distinct principal components. This is to be expected because there are in general min(n-1, p) informative principal components in a data set with n observations and p variables.
+
+The 50 x 4 matrix x has as its columns the principal component score vectors. That is, the kth column is the kth principal component score vector.
+```{r}
+dim(pr.out$x)
+```
+
+Here we can plot the first two principal components. The scale=0 argument to biplot() ensures that the arrows are scaled to represent the loadings.
+```{r}
+biplot (pr.out , scale =0)
+```
+
+
+```{r}
+pr.out$rotation=-pr.out$rotation
+pr.out$x=-pr.out$x
+biplot (pr.out, scale =0)
+```
+
+The prcomp() function also outputs the standard deviation of each principal component.
+```{r}
+pr.out$sdev
+```
+
+The variance explained by each principal component is obtained by squaring these.
+```{r}
+pr.var=pr.out$sdev ^2
+pr.var
+```
+
+To compute the proportion of variance explained by each principal component, we simply divide the variance explained by each principal component by the total variance explained by all four principal components.
+```{r}
+pve=pr.var/sum(pr.var)
+pve
+```
+
+We see that the first principal component explains 62.0% of the variance in the data, the next principal component explains 24.7% of the variance, and so forth. 
+
+We can plot the PVE explained by each component, as well as the cumulative PVE.
+```{r}
+plot(pve, xlab= "Principal Component", ylab= "Proportion of Variance Explained", ylim= c(0,1), type='b')
+plot(cumsum(pve), xlab= "Principal Component", ylab= "Cumulative Proportion of Variance Explained", ylim= c(0,1), type='b')
+```
+
+The function cumsum() computes the cumulative sum of the elements of a numeric vector.
+```{r}
+a<-c(1,2,8,-3)
+cumsum(a) 
+```
+
